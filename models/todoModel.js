@@ -12,6 +12,21 @@ module.exports = class Todo {
     return readTodos();
   }
 
+  static async findOne(id) {
+    const todos = await readTodos();
+    const idx = todos.findIndex(el => el.id === id);
+    if (idx === -1) {
+      return null;
+    }
+    const todo = new Todo(
+      todos[idx].title,
+      todos[idx].completed,
+      todos[idx].dueDate
+    );
+    todo.id = id;
+    return todo;
+  }
+
   static async create(todo) {
     const todos = await readTodos();
     todos.push({ id: uuidv4(), ...todo });
@@ -19,12 +34,19 @@ module.exports = class Todo {
   }
 
   async save() {
+    let mode = 'update';
     if (!this.id) {
       this.id = uuidv4();
+      mode = 'create';
     }
 
     const todos = await readTodos();
-    todos.push(this);
+    if (mode === 'create') {
+      todos.push(this);
+    } else {
+      const idx = todos.findIndex(el => el.id === this.id);
+      todos[idx] = this;
+    }
     await writeTodos(todos);
   }
 

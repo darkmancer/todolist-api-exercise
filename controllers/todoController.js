@@ -70,16 +70,26 @@ exports.updateTodo = async (req, res, next) => {
   try {
     const params = req.params;
 
-    const todos = await readTodos();
-    const idx = todos.findIndex(el => el.id === params.id);
-    if (idx === -1) {
+    // const todos = await readTodos();
+    // const idx = todos.findIndex(el => el.id === params.id);
+    // if (idx === -1) {
+    //   createError('todo is not found', 400);
+    // }
+    // const {
+    //   title = todos[idx].title,
+    //   completed = todos[idx].completed,
+    //   dueDate = todos[idx].dueDate
+    // } = req.body;
+
+    const todo = await Todo.findOne(params.id);
+    if (!todo) {
       createError('todo is not found', 400);
     }
 
     const {
-      title = todos[idx].title,
-      completed = todos[idx].completed,
-      dueDate = todos[idx].dueDate
+      title = todo.title,
+      completed = todo.completed,
+      dueDate = todo.dueDate
     } = req.body;
 
     if (typeof title !== 'string') {
@@ -99,15 +109,19 @@ exports.updateTodo = async (req, res, next) => {
       return res.status(400).json({ message: 'dueDate must be a date string' });
     }
 
-    todos[idx] = {
-      id: params.id,
-      title,
-      completed,
-      dueDate: dueDate === null ? dueDate : new Date(dueDate)
-    };
+    // todos[idx] = {
+    //   id: params.id,
+    //   title,
+    //   completed,
+    //   dueDate: dueDate === null ? dueDate : new Date(dueDate)
+    // };
 
-    await writeTodos(todos);
-    res.json({ todo: todos[idx] });
+    // await writeTodos(todos);
+    todo.title = title;
+    todo.completed = completed;
+    todo.dueDate = dueDate === null ? dueDate : new Date(dueDate);
+    await todo.save();
+    res.json({ todo: todo });
   } catch (err) {
     next(err);
   }
