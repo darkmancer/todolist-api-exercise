@@ -78,7 +78,18 @@ app.put('/todos/:id', async (req, res, next) => {
   try {
     const params = req.params;
 
-    const { title, completed = false, dueDate = null } = req.body;
+    const todos = await readTodos();
+    const idx = todos.findIndex(el => el.id === params.id);
+    if (idx === -1) {
+      createError('todo is not found', 400);
+    }
+
+    const {
+      title = todos[idx].title,
+      completed = todos[idx].completed,
+      dueDate = todos[idx].dueDate
+    } = req.body;
+
     if (typeof title !== 'string') {
       // return res.status(400).json({ message: 'title must be a string' });
       createError('title must be a string', 400);
@@ -94,12 +105,6 @@ app.put('/todos/:id', async (req, res, next) => {
 
     if (dueDate !== null && !validator.isDate(dueDate + '')) {
       return res.status(400).json({ message: 'dueDate must be a date string' });
-    }
-
-    const todos = await readTodos();
-    const idx = todos.findIndex(el => el.id === params.id);
-    if (idx === -1) {
-      createError('todo is not found', 400);
     }
 
     todos[idx] = {
